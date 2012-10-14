@@ -1,0 +1,65 @@
+<!-- -*- Mode: XHTML; tab-width: 2; indent-tabs-mode: nil; -*- -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>WebSocket test</title>
+    <script>
+function websockets_supported() {
+  return 'WebSocket' in window;
+}
+
+var socket = null;
+var wsstatus = null;
+var received = null;
+var tosend = null;
+
+function send() {
+  if(!socket) {
+    wsstatus.value = 'no socket';
+  } else {
+    socket.send(tosend.value+'\n');
+    tosend.value = '';
+  }
+}
+
+function init() {
+  wsstatus = document.getElementById('wsstatus');
+  received = document.getElementById('received');
+  tosend = document.getElementById('tosend');
+
+  if(websockets_supported()) {
+    wsstatus.value = 'supported';
+  } else {
+    wsstatus.value = 'not supported';
+    return;
+  }
+
+  wsstatus.value = 'connecting ...';
+  socket = new WebSocket('ws://localhost:9997/');  
+  socket.onopen = function() {  
+    wsstatus.value = 'connected';
+  };
+  socket.onclose = function() {
+    wsstatus.value = 'CLOSED';
+  };  
+  socket.onerror = function() {
+    wsstatus.value = 'ERROR';
+  };
+  socket.onmessage = function (e) {
+    received.value += e.data;
+  };  
+}
+    </script>
+  </head>
+  <body onload="init()">
+    <p>WebSocket status: <input id="wsstatus" readonly="true" type="text"size="10" value="testing ..."/>
+    </p>
+    <p>Messages:</p>
+    <form action="#" onsubmit="send(); return false;">
+      <input id="tosend" type="text" size="60"></input>
+      <input type="submit" value="send message"> 
+    </form>
+    <textarea id="received" readonly="true" rows="10" cols="80"></textarea>
+  </body>
+</html>
